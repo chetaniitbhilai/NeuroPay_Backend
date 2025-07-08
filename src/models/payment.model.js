@@ -1,39 +1,17 @@
 import mongoose from 'mongoose';
 
 const paymentSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'User',
-  },
-  amount: {
-    type: Number,
-    required: true,
-  },
-  items: [
-    {
-      _id: String,
-      name: String,
-      price: Number,
-      quantity: Number,
-      total: Number,
-      image: String,
-    },
-  ],
-  paymentIntentId: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: String,
-    required: true,
-  },
-  date: {
-    type: Date,
-    default: Date.now, // ✅ This sets default to current date/time
-  },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  amount: Number,
+  items: Array,
+  paymentIntentId: String,  // for Stripe or Razorpay
+  sessionId: String,        // for Stripe Checkout
+  status: { type: String, default: 'created' }, // created, succeeded, failed, etc.
+  method: { type: String, default: 'card' },    // 'card', 'upi', 'wallet', etc.
+  vpa: { type: String, default: '' },           // UPI VPA (Virtual Payment Address) if available
+  location: { type: String, default: 'unknown' },   // user or merchant location
+  merchantId: { type: String, default: 'Walmart India' }, // optional merchant/business name
+  date: { type: Date, default: Date.now }  // payment timestamp
 });
 
-const Payment = mongoose.model('Payment', paymentSchema);
-
-export default Payment;
+export default mongoose.model('Payment', paymentSchema);
