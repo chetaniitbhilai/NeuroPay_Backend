@@ -1,9 +1,20 @@
 import dotenv from 'dotenv';
 import Stripe from 'stripe';
 import Payment from '../models/payment.model.js';
+import axios from 'axios';
 
 dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+async function checkFraud(paymentData) {
+  try {
+    const response = await axios.post('http://localhost:5001/predict', paymentData);
+    return response.data;
+  } catch (error) {
+    console.error('Error during fraud detection:', error);
+    return null;
+  }
+}
 
 export const createPaymentIntent = async (req, res) => {
   const { totalAmount, items, merchantId = 'Walmart India', location = 'India' } = req.body;
@@ -33,6 +44,18 @@ export const createPaymentIntent = async (req, res) => {
       metadata: { userId },
     });
 
+    // Check for fraud
+    const now = new Date().toISOString();
+const fraudItem = {
+      Time: now,
+      Source: userId,
+      Target: merchantId,
+      Amount: totalAmount,
+      Location: location,
+      Type: 'card',
+    };
+    const fraudResult = await checkFraud(fraudItem);
+
     // Save payment record in MongoDB
     await Payment.create({
       userId,
@@ -43,12 +66,23 @@ export const createPaymentIntent = async (req, res) => {
       merchantId,
       location,
       date: new Date(),
+
+      // Store fraud detection results
+      fraudDetection: {
+        isChecked: true,
+        fraudProbability: fraudResult?.fraud_probability || 0.0,
+        prediction: fraudResult?.prediction || 0,
+        riskLevel: fraudResult?.risk_level || 'LOW',
+        isFraud: fraudResult?.is_fraud || false,
+        modelUsed: fraudResult?.model_used || 'rgtan',
+        checkedAt: new Date()
+      }
     });
     // Log the successful creation
     console.log('✅ Payment Intent Saved to DB:', paymentIntent.id);
     console.log('✅ Payment Intent Created:', paymentIntent.client_secret);
-    
-    res.status(200).json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
+
+    res.status(200).json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id, fraudResult });
   } catch (err) {
     console.error('❌ Stripe Error:', err);
     res.status(500).json({ error: 'Payment creation failed' });
@@ -76,6 +110,18 @@ export const logUPIPayment = async (req, res) => {
       image: item.image || '',
     }));
 
+    // Check for fraud (UPI)
+    const nowUpi = new Date().toISOString();
+const fraudItemUpi = {
+      Time: nowUpi,
+      Source: userId,
+      Target: merchantId,
+      Amount: totalAmount,
+      Location: location,
+      Type: 'upi',
+    };
+    const fraudResult = await checkFraud(fraudItemUpi);
+
     const paymentRecord = new Payment({
       userId,
       amount: totalAmount,
@@ -85,11 +131,22 @@ export const logUPIPayment = async (req, res) => {
       status: 'succeeded',
       location,
       merchantId,
+
+      // Store fraud detection results
+      fraudDetection: {
+        isChecked: true,
+        fraudProbability: fraudResult?.fraud_probability || 0.0,
+        prediction: fraudResult?.prediction || 0,
+        riskLevel: fraudResult?.risk_level || 'LOW',
+        isFraud: fraudResult?.is_fraud || false,
+        modelUsed: fraudResult?.model_used || 'rgtan',
+        checkedAt: new Date()
+      }
     });
 
     await paymentRecord.save();
 
-    res.status(200).json({ message: 'UPI payment logged successfully' });
+    res.status(200).json({ message: 'UPI payment logged successfully', fraudResult });
   } catch (error) {
     console.error('Error logging UPI payment:', error);
     res.status(500).json({ error: 'Internal server error while logging UPI payment' });

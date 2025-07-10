@@ -11,7 +11,18 @@ const paymentSchema = new mongoose.Schema({
   vpa: { type: String, default: '' },           // UPI VPA (Virtual Payment Address) if available
   location: { type: String, default: 'unknown' },   // user or merchant location
   merchantId: { type: String, default: 'Walmart India' }, // optional merchant/business name
-  date: { type: Date, default: Date.now }  // payment timestamp
+  date: { type: Date, default: Date.now },  // payment timestamp
+  
+  // Fraud detection fields
+  fraudDetection: {
+    isChecked: { type: Boolean, default: false },
+    fraudProbability: { type: Number, default: 0.0 },
+    prediction: { type: Number, default: 0 }, // 0 = legitimate, 1 = fraud
+    riskLevel: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH'], default: 'LOW' },
+    isFraud: { type: Boolean, default: false },
+    modelUsed: { type: String, default: 'rgtan' },
+    checkedAt: { type: Date }
+  }
 });
 
 export default mongoose.model('Payment', paymentSchema);

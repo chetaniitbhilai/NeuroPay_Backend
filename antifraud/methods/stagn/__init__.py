@@ -1,0 +1,1 @@
+# STAGN package initialization
