@@ -1,4 +1,7 @@
 node_modules
 .env
 .DS_Store
-fraud_venv
+fraud
+ges_venv
+.gitignore
+__pycache__

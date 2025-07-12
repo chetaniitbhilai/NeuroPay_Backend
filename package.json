@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js --ignore 'fraud_venv/*' --ignore 'node_modules/*' --ignore 'public/*' --ignore 'views/*' --ignore 'uploads/*' --ignore 'logs/*' --ignore 'config/*' --ignore 'tests/*'"
   },
   "keywords": [],
   "author": "",

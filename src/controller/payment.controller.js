@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 async function checkFraud(paymentData) {
   try {
-    const response = await axios.post('http://localhost:5001/predict', paymentData);
+    const response = await axios.post('http://localhost:5004/predict', paymentData);
     return response.data;
   } catch (error) {
     console.error('Error during fraud detection:', error);

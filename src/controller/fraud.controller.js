@@ -4,7 +4,7 @@ import axios from 'axios';
 // Function to call fraud detection service
 async function checkFraud(paymentData) {
   try {
-    const response = await axios.post('http://localhost:5001/predict', paymentData);
+    const response = await axios.post('http://localhost:8000/predict', paymentData);
     return response.data;
   } catch (error) {
     console.error('Error during fraud detection:', error);
