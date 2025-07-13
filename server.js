@@ -13,7 +13,7 @@ dotenv.config();
 console.log("MONGO_DB_URI:", process.env.MONGO_DB_URI);
 console.log("PORT:", process.env.PORT);
 
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 5000;
 const app = express();
 
 app.use(express.static('public'));

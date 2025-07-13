@@ -4,13 +4,14 @@ import axios from 'axios';
 // Function to call fraud detection service
 async function checkFraud(paymentData) {
   try {
-    const response = await axios.post('http://localhost:5001/predict', paymentData);
+    const response = await axios.post('http://localhost:8000/predict', paymentData);
     return response.data;
   } catch (error) {
     console.error('Error during fraud detection:', error);
     return null;
   }
 }
+
 
 // Get fraud analytics for admin dashboard
 export const getFraudAnalytics = async (req, res) => {
@@ -87,7 +88,11 @@ export const getFraudAnalytics = async (req, res) => {
   }
 };
 
+
+
+
 // Check single transaction for fraud
+// not being used
 export const checkTransactionFraud = async (req, res) => {
   try {
     const { paymentId } = req.body;
