@@ -12,6 +12,7 @@ async function checkFraud(paymentData) {
   }
 }
 
+
 // Get fraud analytics for admin dashboard
 export const getFraudAnalytics = async (req, res) => {
   try {
@@ -87,7 +88,11 @@ export const getFraudAnalytics = async (req, res) => {
   }
 };
 
+
+
+
 // Check single transaction for fraud
+// not being used
 export const checkTransactionFraud = async (req, res) => {
   try {
     const { paymentId } = req.body;

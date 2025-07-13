@@ -3,25 +3,26 @@ import datetime
 import jwt
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
-from dotenv import load_dotenv  # NEW
-from qdrant.model import store_vector_in_qdrant, initialize_qdrant,initialize_models  # Adjust import based on your structure
-load_dotenv() 
+from dotenv import load_dotenv
+from qdrant.model import (
+    store_vector_in_qdrant,
+    initialize_qdrant,
+    initialize_models,
+    get_fraud_summary_for_user  # NEW
+)
 
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-JWT_SECRET = os.environ.get("JWT_SECRET", "your_secret_key")  # fallback for dev
+JWT_SECRET = os.environ.get("JWT_SECRET", "your_secret_key")
 
 
-# In-memory store: {user_id: [vectors]}
-vector_store = {}
-
-# JWT middleware
 def is_authenticated(f):
     def wrapper(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
             return jsonify({"error": "Unauthorized"}), 401
         token = auth_header.split(" ")[1]
 
@@ -36,7 +37,8 @@ def is_authenticated(f):
             return jsonify({"error": "Invalid token"}), 401
 
         return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__  # Fix Flask route bug
+
+    wrapper.__name__ = f.__name__
     return wrapper
 
 
@@ -51,19 +53,26 @@ def receive_vector():
 
     user_id = g.user_id
     timestamp = datetime.datetime.now().isoformat()
-    vector_len = len(vector)
+    print(f"📥 Received vector for user {user_id} at {timestamp} (len={len(vector)})")
 
-    print(f"📥 Received vector for user {user_id} at {timestamp} (length: {vector_len})")
-
-    # Directly store in Qdrant
     success, error = store_vector_in_qdrant(user_id, vector)
-
     if not success:
-        print(f"⚠️ Qdrant insert failed: {error}")
-        return jsonify({"message": "Qdrant insert failed", "error": error}), 500
+        return jsonify({"error": error}), 500
 
-    return jsonify({"message": "Vector stored in Qdrant", "user": user_id}), 200
+    return jsonify({"message": "Stored successfully", "user": user_id}), 200
 
+
+@app.route("/api/user-fraud-summary", methods=["GET"])
+def get_user_fraud_summary():
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+
+    try:
+        return jsonify(get_fraud_summary_for_user(user_id)), 200
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

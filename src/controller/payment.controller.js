@@ -10,8 +10,21 @@ async function checkFraud(paymentData) {
   try {
     const response = await axios.post('http://localhost:5004/predict', paymentData);
     return response.data;
+
   } catch (error) {
     console.error('Error during fraud detection:', error);
+    return null;
+  }
+}
+
+async function getUserFraudSummary(userId) {
+  try {
+    const response = await axios.get(`http://localhost:5001/api/user-fraud-summary`, {
+      params: { user_id: userId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user fraud summary:', error);
     return null;
   }
 }
@@ -54,7 +67,19 @@ const fraudItem = {
       Location: location,
       Type: 'card',
     };
+    
+    
     const fraudResult = await checkFraud(fraudItem);
+    const gesResult = await getUserFraudSummary(userId);
+    const fraud_probability = (fraudResult?.fraud_probability + (gesResult?.fraud_true/(gesResult?.fraud_true + gesResult?.fraud_false))) / 2 || 0.0;
+    let riskLevel = 'LOW';
+    if (fraud_probability > 0.5) {
+      riskLevel = 'MEDIUM';
+    } else if (fraud_probability >0.7) {
+       riskLevel = 'HIGH';
+    } else {
+      riskLevel = 'LOW';
+    }
 
     // Save payment record in MongoDB
     await Payment.create({
@@ -70,9 +95,9 @@ const fraudItem = {
       // Store fraud detection results
       fraudDetection: {
         isChecked: true,
-        fraudProbability: fraudResult?.fraud_probability || 0.0,
+        fraudProbability: fraud_probability || 0.0,
         prediction: fraudResult?.prediction || 0,
-        riskLevel: fraudResult?.risk_level || 'LOW',
+        riskLevel: riskLevel || 'LOW',
         isFraud: fraudResult?.is_fraud || false,
         modelUsed: fraudResult?.model_used || 'rgtan',
         checkedAt: new Date()
@@ -121,6 +146,17 @@ const fraudItemUpi = {
       Type: 'upi',
     };
     const fraudResult = await checkFraud(fraudItemUpi);
+    const gesResult = await getUserFraudSummary(userId);
+    const fraud_probability = (fraudResult?.fraud_probability + (gesResult?.fraud_true/(gesResult?.fraud_true + gesResult?.fraud_false))) / 2 || 0.0;
+    let riskLevel = 'LOW';
+    if (fraud_probability > 0.7) {
+      riskLevel = 'HIGH';
+    } else if (fraud_probability > 0.5) {
+      riskLevel = 'MEDIUM';
+    } else {
+      riskLevel = 'LOW';
+    }
+    console.log('UPI Payment Fraud Result:', fraud_probability, riskLevel);
 
     const paymentRecord = new Payment({
       userId,
@@ -135,9 +171,9 @@ const fraudItemUpi = {
       // Store fraud detection results
       fraudDetection: {
         isChecked: true,
-        fraudProbability: fraudResult?.fraud_probability || 0.0,
+        fraudProbability: fraud_probability || 0.0,
         prediction: fraudResult?.prediction || 0,
-        riskLevel: fraudResult?.risk_level || 'LOW',
+        riskLevel: riskLevel || 'LOW',
         isFraud: fraudResult?.is_fraud || false,
         modelUsed: fraudResult?.model_used || 'rgtan',
         checkedAt: new Date()

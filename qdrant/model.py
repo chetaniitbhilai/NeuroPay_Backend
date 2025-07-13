@@ -160,5 +160,36 @@ def delete_all_vectors_for_user(user_id: str):
         print(f"❌ Failed to delete vectors for user_id {user_id}: {e}")
         return False
 
+
+def get_fraud_summary_for_user(user_id: str):
+    points, _ = qdrant.scroll(
+        collection_name=COLLECTION_NAME,
+        limit=100,
+        with_payload=True,
+        with_vectors=True,
+        scroll_filter=Filter(
+            must=[FieldCondition(key="user_id", match=MatchValue(value=user_id))]
+        )
+    )
+
+    if not points:
+        return {
+            "message": f"No vectors found for user {user_id}",
+            "fraud_true": 0,
+            "fraud_false": 0,
+            "latest_vector": None
+        }
+
+    fraud_true = sum(1 for p in points if p.payload.get("is_fraud") is True)
+    fraud_false = sum(1 for p in points if p.payload.get("is_fraud") is False)
+    latest = max(points, key=lambda p: p.payload.get("timestamp", ""))
+
+    return {
+        "user_id": user_id,
+        "fraud_true": fraud_true,
+        "fraud_false": fraud_false
+    }
+
+
 print_all_vectors()
 # delete_all_vectors_for_user("6866ba016004cc970eb8b429")
