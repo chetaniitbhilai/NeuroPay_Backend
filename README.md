@@ -1,186 +1,163 @@
-# Walmart Hack Backend - Setup Instructions
 
-This project consists of two main services:
-1. **Node.js Backend** (Port 5002) - Main API server
-2. **Python Fraud Detection Service** (Port 5001) - ML-based fraud detection
+# 🔐 NeuroPay Backend & Fraud Detection Engine
 
-## Prerequisites
+This is the backend and machine learning system powering **NeuroPay**, a secure transaction platform that verifies users with both behavioral biometrics and financial fraud detection.
 
-- Node.js (v16 or higher)
-- Python 3.11
-- MongoDB connection
+---
 
-## Setup Instructions
+## 📁 Project Structure
 
-### 1. Node.js Backend Setup
+```
+.
+├── Gesture_models/                  # Trained gesture-based biometric models
+│   ├── CompleteModel.py
+│   ├── SiameseNet.py
+│   ├── decision_model.pth
+│   ├── latest_model_epoch_46.pth
+│   ├── DecisionNetwork.py
+│   └── __init__.py
+│
+├── qdrant/                          # Qdrant integration for vector DB
+│   └── model.py
+│
+├── src/
+│   ├── controller/                  # Business logic controllers
+│   │   ├── fraud.controller.js
+│   │   ├── payment.controller.js
+│   │   ├── product.controller.js
+│   │   └── user.controller.js
+│   │
+│   ├── db/                          # DB connection
+│   │   └── connectToMongoDB.js
+│   │
+│   ├── middleware/                 # Auth and verification middlewares
+│   │   └── authMiddleware.js
+│   │
+│   ├── models/                      # Mongoose data models
+│   │   ├── payment.model.js
+│   │   ├── product.model.js
+│   │   └── user.model.js
+│   │
+│   ├── routes/                      # Express routes
+│   │   ├── fraud.routes.js
+│   │   ├── payment.routes.js
+│   │   ├── productRoute.js
+│   │   └── userRoute.js
+│   │
+│   └── utils/
+│       └── generateToken.js        # JWT token helper
+│
+├── antifraud/                      # Python-based fraud detection engine
+│   ├── config/
+│   ├── feature_engineering/
+│   ├── methods/
+│   ├── models/
+│   ├── main.py                     # Flask app entry for fraud service
+│   └── requirements.txt
+│
+├── biometric_vectors.csv           # Stored gesture embeddings
+├── fraud_detection_service.py      # Legacy or wrapper entry point
+├── gesture_app.py                  # Biometric prediction service
+├── package.json
+├── README.md
+├── requirements.txt
+├── server.js                       # Node.js/Express API entry point
+└── .gitignore
+```
+
+---
+
+## 🚀 Features
+
+- 🔐 **Two-Factor Verification**: Combines gesture biometrics and transaction behavior analytics.
+- 🧠 **Few-Shot Learned Siamese Model**: Lightweight user identification based on motion vectors.
+- 🗂 **Modular Architecture**: Separate layers for model inference, API routes, controllers, and fraud engine.
+- 🧪 **Vector DB (Qdrant)**: For efficient gesture vector storage and similarity search.
+- 💳 **Secure Payments**: Stripe and UPI integrated, with fraud screening before processing.
+
+---
+
+## 🛠 Setup Instructions
+
+### 1. Clone the Repository
 
 ```bash
-# Install Node.js dependencies
+git clone https://github.com/YOUR_USERNAME/NeuroPay.git
+cd NeuroPay
+```
+
+### 2. Install Node.js Backend Dependencies
+
+```bash
+cd backend
 npm install
+```
 
-# Start the Node.js server
-npm i
+### 3. Install Python Fraud Detection Dependencies
+
+```bash
+cd antifraud
+pip install -r requirements.txt
+cd ..
+pip install -r requirements.txt
+```
+
+### 4. Create `.env` File
+
+Create a `.env` file in the backend root:
+
+```env
+MONGO_DB_URI=your_mongodb_uri
+PORT=5000
+
+JWT_SECRET=your_jwt_secret
+NODE_ENV=development
+
+STRIPE_SECRET_KEY=your_stripe_key
+FRAUD_DETECTION_SERVICE_URL=http://localhost
+FRAUD_DETECTION_SERVICE_PORT=8000
+```
+
+---
+
+## 🧠 Running the System
+
+### Start Node.js Server
+
+```bash
+node server.js
 npm run dev
 ```
 
-The Node.js backend will run on `http://localhost:5002`
-
-### 2. Python Virtual Environment Setup
-
-#### Creating Virtual Environment (First time only)
+### Start Python Fraud Detection Service 
 
 ```bash
-# Create virtual environment
-python3 -m venv fraud_venv
 
-# Activate the virtual environment
-source fraud_venv/bin/activate
-
-# Install Python dependencies
-pip install -r fraud_requirements.txt
 ```
+python app.py
+python fraud_detection_service.py
+---
 
-#### Activating Existing Virtual Environment
+### Start Qdrant Service - Docker
 
 ```bash
-# Activate the virtual environment
-source fraud_venv/bin/activate
 
-# Verify activation (you should see (fraud_venv) in your terminal prompt)
-which python
-# Should show: /path/to/your/project/fraud_venv/bin/python
 ```
+docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+---
 
-#### Deactivating Virtual Environment
+
+### Start Biometrics Service  
 
 ```bash
-# When you're done working
-deactivate
-```
-
-### 3. Start the Fraud Detection Service
-
-```bash
-# Make sure virtual environment is activated
-source fraud_venv/bin/activate
-
-# Start the fraud detection service
-fraud_venv/bin/python fraud_detection_service.py
-```
-
-The fraud detection service will run on `http://localhost:5001`
-
-## Running Both Services
-
-**Important:** You need to run both services simultaneously for the application to work properly.
-
-### Option 1: Using Two Terminals
-
-**Terminal 1** - Start the fraud detection service:
-```bash
-cd /path/to/Walmart_hack_back
-source fraud_venv/bin/activate
-fraud_venv/bin/python fraud_detection_service.py
-```
-
-**Terminal 2** - Start the Node.js backend:
-```bash
-cd /path/to/Walmart_hack_back
-npm run dev
-```
-
-### Option 2: Using Background Process
-
-```bash
-# Start fraud detection service in background
-source fraud_venv/bin/activate
-nohup fraud_venv/bin/python fraud_detection_service.py &
-
-# Start Node.js backend
-npm run dev
-```
-
-## Service Architecture
 
 ```
-Frontend/Client
-       ↓
-Node.js Backend (Port 5002)
-       ↓ HTTP requests
-Python Fraud Detection Service (Port 5001)
-       ↓
-ML Models (RGTAN, MCNN, STAN, etc.)
-```
+python gesture_app.py
+---
 
-## API Endpoints
 
-### Node.js Backend (Port 5002)
-- User authentication
-- Payment processing
-- Product management
-- Order management
+## 📬 Contact
 
-### Python Fraud Detection Service (Port 5001)
-- `POST /predict` - Single transaction fraud detection
-- `POST /predict/batch` - Batch fraud detection
-- `GET /health` - Service health check
+For queries or contributions, contact [arpang@iitbhilai.ac.in, chetan@iitbhilai.ac.in, shivam@iitbhilai.ac.in].
 
-## Environment Variables
-
-Make sure you have a `.env` file with the required environment variables:
-- `MONGO_DB_URI`
-- `PORT`
-- `STRIPE_SECRET_KEY`
-- `JWT_SECRET`
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Virtual Environment Issues**
-   ```bash
-   # Check if virtual environment is activated
-   echo $VIRTUAL_ENV
-   # Should show: /path/to/your/project/fraud_venv
-   
-   # If not activated
-   source fraud_venv/bin/activate
-   ```
-
-2. **Port already in use**
-   ```bash
-   # Kill existing processes using the ports
-   lsof -ti:5001 | xargs kill -9  # Kill processes on port 5001
-   lsof -ti:5002 | xargs kill -9  # Kill processes on port 5002
-   ```
-
-3. **Python module not found**
-   ```bash
-   # Make sure virtual environment is activated
-   source fraud_venv/bin/activate
-   
-   # Reinstall dependencies if needed
-   pip install -r fraud_requirements.txt
-   ```
-
-4. **Models not loading**
-   ```bash
-   # Check if model files exist
-   ls -la antifraud/models/
-   
-   # Should show .pth files for different models
-   ```
-
-## Virtual Environment Benefits
-
-- **Isolation**: Keeps project dependencies separate from system Python
-- **Version Control**: Ensures consistent package versions across environments
-- **No Conflicts**: Prevents package conflicts between different projects
-- **Easy Cleanup**: Can delete entire `fraud_venv` folder to remove all dependencies
-
-## Notes
-
-- The fraud detection service loads 5 ML models on startup (MCNN, STAN, GTAN, STAGN, RGTAN)
-- The Node.js backend communicates with the Python service via HTTP requests
-- All payment transactions are automatically checked for fraud using the RGTAN model
-- Virtual environment folder (`fraud_venv/`) is ignored by Git (in `.gitignore`)
+---
