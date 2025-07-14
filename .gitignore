@@ -6,4 +6,4 @@ ges_venv
 .gitignore
 __pycache__
 fraud
-Gesture_models/encoder_checkpoint_epoch_40.pth
+Gesture_models/encoder_checkpoint_epoch_40.pthGesture_models/encoder_checkpoint_epoch_40.pth
