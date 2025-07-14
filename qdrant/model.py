@@ -4,6 +4,8 @@ from qdrant_client.http.models import PointStruct, VectorParams, Distance
 from Gesture_models.CompleteModel import CompleteModel
 import csv
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+from qdrant_client.http.models import PointIdsList
+
 
 import os
 # Setup Qdrant
@@ -58,7 +60,7 @@ def store_vector_in_qdrant(user_id, vector, source="biometric-app", max_vectors_
         )
         vector_count = len(existing_points)
 
-
+        print(f"🔍 Found {vector_count} existing vectors for user {user_id}")
         csv_file = "biometric_vectors.csv"
         file_exists = os.path.isfile(csv_file)
 
@@ -74,6 +76,7 @@ def store_vector_in_qdrant(user_id, vector, source="biometric-app", max_vectors_
         else:
             # Get one reference vector with is_fraud == False
             reference = next((p.vector for p in existing_points if p.payload.get("is_fraud") is False), None)
+            print(f"🔍 Reference vector found: {reference is not None}")
             if reference is None:
                 print("⚠️ No reference vector with is_fraud=False found. Defaulting to is_fraud=True.")
                 is_fraud = True
@@ -81,13 +84,19 @@ def store_vector_in_qdrant(user_id, vector, source="biometric-app", max_vectors_
                 # Use model to compare vectors
                 model = CompleteModel()
                 is_fraud = model.solve(reference, vector)
+                print(f"🔍 is_fraud: {is_fraud}")
 
-
+        print(f"🔍 User {user_id} has {vector_count} existing vectors. is_fraud: {is_fraud}")
+        
         # Step 3: Delete 5 oldest if over max
         if vector_count >= max_vectors_per_user:
             existing_points.sort(key=lambda p: p.payload.get("timestamp", ""))
             to_delete = [p.id for p in existing_points[:5]]
-            qdrant.delete(collection_name=COLLECTION_NAME, points_selector={"points": to_delete})
+            print(f"🧹 Deleting {len(to_delete)} oldest vectors for user {user_id}")
+            qdrant.delete(
+                collection_name=COLLECTION_NAME,
+                points_selector=PointIdsList(points=to_delete)
+            )
             print(f"🧹 Deleted {len(to_delete)} old vectors for user {user_id}")
 
         # Step 4: Store the new vector
@@ -191,5 +200,5 @@ def get_fraud_summary_for_user(user_id: str):
     }
 
 
-print_all_vectors()
+# print_all_vectors()
 # delete_all_vectors_for_user("6866ba016004cc970eb8b429")
