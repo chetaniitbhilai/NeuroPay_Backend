@@ -128,22 +128,22 @@ FRAUD_DETECTION_SERVICE_PORT=8000
 node server.js
 npm run dev
 ```
-
+---
 ### Start Python Fraud Detection Service 
 
 ```bash
-
-```
 python app.py
 python fraud_detection_service.py
+```
+
 ---
 
 ### Start Qdrant Service - Docker
 
 ```bash
-
-```
 docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+```
+
 ---
 
 
@@ -151,8 +151,8 @@ docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
 
 ```bash
 
-```
 python gesture_app.py
+```
 ---
 
 
