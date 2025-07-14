@@ -5,3 +5,5 @@ fraud_venv
 ges_venv
 .gitignore
 __pycache__
+fraud
+encoder_checkpoint_epoch_40.pth
