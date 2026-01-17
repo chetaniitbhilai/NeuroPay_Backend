@@ -34,10 +34,6 @@ def initialize_models():
     """Initialize the fraud detection models"""
     global models_loaded
     try:
-        # Stay in current directory (models are here now)
-        # os.chdir('../untitled folder')
-        
-        # Load the models
         load_models()
         models_loaded = True
         logger.info("✅ Fraud detection models loaded successfully")

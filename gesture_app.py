@@ -53,12 +53,11 @@ def receive_vector():
 
     user_id = g.user_id
     timestamp = datetime.datetime.now().isoformat()
-    print(f"📥 Received vector for user {user_id} at {timestamp} (len={len(vector)})")
+    print(f" Received vector for user {user_id} at {timestamp} (len={len(vector)})")
 
     success, error = store_vector_in_qdrant(user_id, vector)
     if not success:
         return jsonify({"error": error}), 500
-
     return jsonify({"message": "Stored successfully", "user": user_id}), 200
 
 

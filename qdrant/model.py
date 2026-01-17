@@ -46,7 +46,8 @@ def store_vector_in_qdrant(user_id, vector, source="biometric-app", max_vectors_
     timestamp = datetime.datetime.now().isoformat()
 
     try:
-        # Step 1: Get all previous vectors for user
+    
+        assert(len(vector) == 9216)
         existing_points, _ = qdrant.scroll(
             collection_name=COLLECTION_NAME,
             limit=max_vectors_per_user + 20,
@@ -89,34 +90,36 @@ def store_vector_in_qdrant(user_id, vector, source="biometric-app", max_vectors_
         print(f"🔍 User {user_id} has {vector_count} existing vectors. is_fraud: {is_fraud}")
         
         # Step 3: Delete 5 oldest if over max
-        if vector_count >= max_vectors_per_user:
-            existing_points.sort(key=lambda p: p.payload.get("timestamp", ""))
-            to_delete = [p.id for p in existing_points[:5]]
-            print(f"🧹 Deleting {len(to_delete)} oldest vectors for user {user_id}")
-            qdrant.delete(
+
+        if (not is_fraud):
+            qdrant.upsert(
                 collection_name=COLLECTION_NAME,
-                points_selector=PointIdsList(points=to_delete)
+                points=[
+                    PointStruct(
+                        id=int(datetime.datetime.now().timestamp() * 1000),
+                        vector=vector,
+                        payload={
+                            "user_id": user_id,
+                            "timestamp": timestamp,
+                            "is_fraud": is_fraud,
+                            "source": source
+                        }
+                    )
+                ]
             )
-            print(f"🧹 Deleted {len(to_delete)} old vectors for user {user_id}")
 
-        # Step 4: Store the new vector
-        qdrant.upsert(
-            collection_name=COLLECTION_NAME,
-            points=[
-                PointStruct(
-                    id=int(datetime.datetime.now().timestamp() * 1000),
-                    vector=vector,
-                    payload={
-                        "user_id": user_id,
-                        "timestamp": timestamp,
-                        "is_fraud": is_fraud,
-                        "source": source
-                    }
+            print(f"✅ Stored vector for {user_id} | is_fraud: {is_fraud}")
+            
+            if vector_count >= max_vectors_per_user:
+                existing_points.sort(key=lambda p: p.payload.get("timestamp", ""))
+                to_delete = [p.id for p in existing_points[:5]]
+                print(f"🧹 Deleting {len(to_delete)} oldest vectors for user {user_id}")
+                qdrant.delete(
+                    collection_name=COLLECTION_NAME,
+                    points_selector=PointIdsList(points=to_delete)
                 )
-            ]
-        )
+                print(f"🧹 Deleted {len(to_delete)} old vectors for user {user_id}")
 
-        print(f"✅ Stored vector for {user_id} | is_fraud: {is_fraud}")
         return True, None
 
     except Exception as e:
