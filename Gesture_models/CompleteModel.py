@@ -4,7 +4,7 @@ from .DecisionNetwork import DecisionNetwork
 from .SiameseNet import SiameseNet
 
 class CompleteModel:
-    def __init__(self, siamesePath='./Gesture_models/best_model.pth',decisionPath='./Gesture_models/latest_model_epoch_46.pth'):
+    def __init__(self, siamesePath='./bestModel.pth',decisionPath='./latestModelEpoch46.pth'):
         self.siameseNetwork = SiameseNet()
         self.decisionNetwork = DecisionNetwork()
         self.siameseModelPath = Path(siamesePath)
