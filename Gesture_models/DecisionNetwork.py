@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 
+#decision network to classify based on the eucledian distance between the extracted vectors
+#In case you want to retrain on new data points ensure only this part is retrained because of
+#catastrophic forgetting in Siamese Neural Networks
+
 class DecisionNetwork(nn.Module):
     def __init__(self):
         super(DecisionNetwork, self).__init__()

@@ -1,5 +1,8 @@
 import torch.nn as nn
 
+#Feature extractor from the input vectors 
+#Use triplet training with semi-hard triplet mining for superior results
+
 class SiameseNet(nn.Module):
 
     def __init__(self):
