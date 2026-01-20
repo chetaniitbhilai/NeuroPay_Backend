@@ -4,12 +4,7 @@ import jwt
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 from dotenv import load_dotenv
-from qdrant.model import (
-    store_vector_in_qdrant,
-    initialize_qdrant,
-    initialize_models,
-    get_fraud_summary_for_user  # NEW
-)
+from qdrant.model import (store_vector_in_qdrant,initialize_qdrant,initialize_models,get_fraud_summary_for_user)
 
 load_dotenv()
 
@@ -17,6 +12,9 @@ app = Flask(__name__)
 CORS(app)
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "your_secret_key")
+
+authentic_swipes = {}
+total_swipes = {}
 
 
 def is_authenticated(f):
@@ -54,28 +52,42 @@ def receive_vector():
     user_id = g.user_id
     timestamp = datetime.datetime.now().isoformat()
     print(f" Received vector for user {user_id} at {timestamp} (len={len(vector)})")
-
     success, error = store_vector_in_qdrant(user_id, vector)
-    if not success:
+    if (user_id not in authentic_swipes.keys()):
+        authentic_swipes[user_id] = 0
+
+    if success is None:
         return jsonify({"error": error}), 500
+
+    authentic_swipes[user_id] += (not is_fraud)
+    
+    if (user_id not in total_swipes.keys()):
+        total_swipes[user_id] = 0
+    
+    total_swipes[user_id] += 1
     return jsonify({"message": "Stored successfully", "user": user_id}), 200
 
 
 @app.route("/api/user-fraud-summary", methods=["GET"])
 def get_user_fraud_summary():
-    user_id = request.args.get("user_id")
-    if not user_id:
-        return jsonify({"error": "Missing user_id"}), 400
-
     try:
-        return jsonify(get_fraud_summary_for_user(user_id)), 200
+        user_id = request.args.get("user_id")
+        if not user_id:
+            return jsonify({"error": "Missing user_id"}), 400
+        if user_id not in authentic_swipes.keys() or user_id not in total_swipes.keys():
+            return jsonify({"error": "Missing user_id"}), 400
+        return {
+            "user_id":user_id,
+            "fraud_true":authentic_swipes[user_id]
+            "fraud_false":total_swipes[user_id] - authentic_swipes[user_id]
+        }
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
     initialize_qdrant()
     initialize_models()
-    print("✅ Qdrant and models initialized")
+    print("Qdrant and models initialized")
     app.run(debug=True, host="0.0.0.0", port=5001)
