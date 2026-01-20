@@ -7,9 +7,9 @@ class CompleteModel:
     def __init__(self, siamesePath='./Gesture_models/best_model.pth',decisionPath='./Gesture_models/latest_model_epoch_46.pth'):
         self.siameseNetwork = SiameseNet()
         self.decisionNetwork = DecisionNetwork()
-        self.siameseModelPath = Path("./Gesture_models/encoder_checkpoint_epoch_40.pth")
+        self.siameseModelPath = Path(siamesePath)
         self.temp = torch.load(self.siameseModelPath, map_location='cpu')
-        self.decisionModelPath = decisionPath
+        self.decisionModelPath = Path(decisionPath)
         self.siameseNetwork.load_state_dict(self.temp['model_state_dict'])  
         self.decisionNetwork.load_state_dict(torch.load(self.decisionModelPath, map_location='cpu'))
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'

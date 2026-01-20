@@ -18,7 +18,7 @@ def initialize_qdrant():
     if COLLECTION_NAME not in [c.name for c in qdrant.get_collections().collections]:
         qdrant.recreate_collection(
             collection_name=COLLECTION_NAME,
-            vectors_config=VectorParams(size=9216, distance=Distance.COSINE)
+            vectors_config=VectorParams(size=9216,distance=Distance.COSINE)
         )
 
 # Optional global flag

@@ -72,7 +72,7 @@ def load_models():
                             model.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=False))
                             model.eval()
                             models[method] = model
-                            logger.info(f"✅ Successfully loaded {method} model")
+                            logger.info(f"Successfully loaded {method} model")
                         elif method == 'stan':
                             from antifraud.methods.stan.stan_2d import stan_2d_model
 # torch.serialization.add_safe_globals({'stan_2d_model': stan_2d_model})  # Commented out due to API change
@@ -86,7 +86,7 @@ def load_models():
                             model.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=False))
                             model.eval()
                             models[method] = model
-                            logger.info(f"✅ Successfully loaded {method} model")
+                            logger.info(f"Successfully loaded {method} model")
                         elif method == 'gtan':
                             try:
                                 import dgl
@@ -106,7 +106,7 @@ def load_models():
                                 model.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=False))
                                 model.eval()
                                 models[method] = model
-                                logger.info(f"✅ Successfully loaded {method} model")
+                                logger.info(f"Successfully loaded {method} model")
                             except ImportError as ie:
                                 raise Exception(f"DGL not available: {ie}")
                         elif method == 'stagn':
@@ -117,7 +117,7 @@ def load_models():
                                 model = torch.load(model_path, map_location='cpu', weights_only=False)
                                 model.eval()
                                 models[method] = model
-                                logger.info(f"✅ Successfully loaded {method} model")
+                                logger.info(f"Successfully loaded {method} model")
                             except Exception as e:
                                 raise Exception(f"STAGN loading failed: {e}")
                         elif method == 'rgtan':
@@ -128,7 +128,7 @@ def load_models():
                                 model = torch.load(model_path, map_location='cpu', weights_only=False)
                                 model.eval()
                                 models[method] = model
-                                logger.info(f"✅ Successfully loaded {method} model")
+                                logger.info(f"Successfully loaded {method} model")
                             except Exception as e:
                                 raise Exception(f"RGTAN loading failed: {e}")
                     except Exception as e:
@@ -143,14 +143,14 @@ def load_models():
                                 model = torch.load(model_path, map_location='cpu', weights_only=False)
                                 model.eval()
                                 models[method] = model
-                                logger.info(f"✅ Successfully loaded {method} model (alternative method)")
+                                logger.info(f"Successfully loaded {method} model (alternative method)")
                             elif method == 'stan':
                                 from antifraud.methods.stan.stan_2d import stan_2d_model
                                 # with torch.serialization.safe_globals({'stan_2d_model': stan_2d_model}):  # Commented out due to API change
                                 model = torch.load(model_path, map_location='cpu', weights_only=False)
                                 model.eval()
                                 models[method] = model
-                                logger.info(f"✅ Successfully loaded {method} model (alternative method)")
+                                logger.info(f"Successfully loaded {method} model (alternative method)")
                             elif method == 'gtan':
                                 try:
                                     import dgl
@@ -159,7 +159,7 @@ def load_models():
                                     model = torch.load(model_path, map_location='cpu', weights_only=False)
                                     model.eval()
                                     models[method] = model
-                                    logger.info(f"✅ Successfully loaded {method} model (alternative method)")
+                                    logger.info(f"Successfully loaded {method} model (alternative method)")
                                 except ImportError:
                                     raise Exception("DGL not available")
                         except Exception as e2:
