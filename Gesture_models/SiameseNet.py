@@ -18,15 +18,15 @@ class SiameseNet(nn.Module):
         self.dense     = nn.Linear(in_features=589056,out_features=32)
 
     def forward(self,x):
-        x = self.conv1d_l1(x)
-        x = self.bn1(x)
-        x = self.conv1d_l2(x)
-        x = self.bn2(x)
-        x = self.conv1d_l3(x)
-        x = self.bn3(x)
-        x = self.maxpool(x)
-        x = self.dropout(x)
-        x = x.permute(0,2,1)
-        x = x.reshape(x.size(0),-1)
-        x = self.dense(x)
-        return x
+        x_in = self.conv1d_l1(x)
+        x_in = self.bn1(x_in)
+        x_in = self.conv1d_l2(x_in)
+        x_in = self.bn2(x_in)
+        x_in = self.conv1d_l3(x_in)
+        x_in = self.bn3(x_in)
+        x_in = self.maxpool(x_in)
+        x_in = self.dropout(x_in)
+        x_in = x_in.permute(0,2,1)
+        x_in = x_in.reshape(x_in.size(0),-1)
+        x_in = self.dense(x_in)
+        return x_in

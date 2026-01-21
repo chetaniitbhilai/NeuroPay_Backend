@@ -18,14 +18,14 @@ class DecisionNetwork(nn.Module):
         self.layer3 = nn.Linear(32, 1)
 
     def forward(self, x):
-        x = self.layer1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
+        x_in = self.layer1(x)
+        x_in = self.bn1(x_in)
+        x_in = self.relu(x_in)
 
-        x = self.layer2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
+        x_in = self.layer2(x_in)
+        x_in = self.bn2(x_in)
+        x_in = self.relu(x_in)
 
-        x = self.dropout(x)
-        x = self.layer3(x)
-        return x  
+        x_in = self.dropout(x_in)
+        x_in = self.layer3(x_in)
+        return x_in
