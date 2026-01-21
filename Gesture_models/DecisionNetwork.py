@@ -17,8 +17,6 @@ class DecisionNetwork(nn.Module):
         self.dropout = nn.Dropout(p=0.25)
         self.layer3 = nn.Linear(32, 1)
 
-        self.relu = nn.ReLU()
-
     def forward(self, x):
         x = self.layer1(x)
         x = self.bn1(x)
